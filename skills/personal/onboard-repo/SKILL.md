@@ -31,6 +31,7 @@ Create `<repo>/worktrees/onboard-agent-practices` on a new branch from the defau
 ## 3. AGENTS.md
 
 - `git mv CLAUDE.md AGENTS.md`. Keep a `CLAUDE.md` only if it has genuinely Claude-specific lines, and then it holds `@AGENTS.md` plus those lines.
+- If neither file exists, create `AGENTS.md` with a one-paragraph map of the repo, a pointer to the README index, and only the rules specific to this repo that an agent could not infer from the code. Creating it, and a README if missing, are judgement calls for step 1.
 - Update every reference found in step 1. Fix references that were already wrong while you are on the line, and point them at the doc that actually holds the content.
 - One documentation index, in `README.md`. Merge any other index into it so no listed doc is lost, and replace the other copy with a one-line pointer to `README.md#documentation`.
 - Remove instructions that only tell agents to edit-protect the file or to avoid creating docs; the global instructions cover documentation policy.
@@ -42,6 +43,8 @@ Locate the `setup-matt-pocock-skills` skill folder (the directory holding its `S
 - `issue-tracker-github.md` saved as `issue-tracker.md`:
   - Create issues with `gh issue create --project "Personal" ...`, and say never to omit `--project`.
   - Add: open a draft PR whose body contains `Closes #<number>` as soon as the branch has its first commit. Linking moves the issue to In Progress on the board; merging moves it to Done.
+  - In "Pull requests as a triage surface", keep only the flag line, as a statement (`**PRs as a request surface: no.** External PRs are not triaged as feature requests.`), and delete the setup parenthetical and the instructions for the `yes` case.
+  - Keep the wayfinding section; the `wayfinder` skill reads it.
 - `triage-labels.md`: delete the closing line telling the reader to edit the column.
 - `domain.md`: keep the single-context layout only (`GLOSSARY.md` and `docs/adr/` at the root). Delete the multi-context text and the example file trees.
 
@@ -76,15 +79,17 @@ For every "always" or "never" rule in `AGENTS.md` and the development docs, chec
 - Enforceable with many violations: leave the prose, and open an issue with `--project "Personal"` giving the rule, the per-code violation counts (`ruff check --select <RULE> --statistics`), the scope decisions, and a "done when".
 - Not mechanically checkable: keep it as prose.
 
+A repo with no linters still gets this pass; record its outcome in the PR body even when nothing changes.
+
 ### Docs checks
 
 Copy the shared docs checks from the `agent-config` repo's `docs-checks/` directory:
 
-- `vale/Temporal/` to `.vale/styles/Temporal/`, and `vale.ini` to `.vale.ini`.
+- `vale/Temporal/` to `.vale/styles/Temporal/`, and `vale.ini` to `.vale.ini`. In the `agent-config` repo itself, copy no styles: point `.vale.ini`'s `StylesPath` at `docs-checks/vale`.
 - Append the hooks in `pre-commit-hooks.yaml` to the repo's `.pre-commit-config.yaml`, creating it (with `repos:`) if missing.
 - If the repo has no CI job running pre-commit, add `lint.yml` under `.github/workflows/`.
 
-Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks wherever the repo describes its development tooling.
+Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks, their scope, and `pre-commit install` wherever the repo describes its development tooling; if it describes none, add a "Development" section to `README.md`. Install the hook locally with `uvx pre-commit install`.
 
 ## 6. Backlog to issues
 
@@ -102,7 +107,7 @@ Then remove the migrated source: delete tracked files in the PR; for an untracke
 
 ## 8. Review, then PR
 
-Commit with the pre-commit hook running. Before opening the PR, have an agent that did not write the change review `git diff origin/<default>...HEAD` against this skill's steps: references, links and anchors, behaviour of any code fixes, contradictions between `AGENTS.md` and `docs/agents/`, and leftover template text. Fix what it finds in a follow-up commit, judging each finding on its merits (it may not know which skills are installed).
+Commit with the pre-commit hook running. Before opening the PR, have an agent that did not write the change review `git diff origin/<default>...HEAD` against this skill's steps: references, links and anchors, behaviour of any code fixes, accuracy of new docs against the repo's scripts and config (the source of truth when no prior docs exist), contradictions between `AGENTS.md` and `docs/agents/`, and leftover template text. Fix what it finds in a follow-up commit, judging each finding on its merits (it may not know which skills are installed).
 
 Open the PR. Its body lists the diff changes, the work done outside the diff (labels, board, issue numbers), and the judgement calls. Never merge.
 
