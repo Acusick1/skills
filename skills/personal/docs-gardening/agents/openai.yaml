@@ -1,0 +1,3 @@
+interface:
+  display_name: "Docs Gardening"
+  short_description: "Review or rewrite docs to match current state and code"
