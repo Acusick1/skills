@@ -76,6 +76,16 @@ For every "always" or "never" rule in `AGENTS.md` and the development docs, chec
 - Enforceable with many violations: leave the prose, and open an issue with `--project "Personal"` giving the rule, the per-code violation counts (`ruff check --select <RULE> --statistics`), the scope decisions, and a "done when".
 - Not mechanically checkable: keep it as prose.
 
+### Docs checks
+
+Copy the shared docs checks from the `agent-config` repo's `docs-checks/` directory:
+
+- `vale/Temporal/` to `.vale/styles/Temporal/`, and `vale.ini` to `.vale.ini`.
+- Append the hooks in `pre-commit-hooks.yaml` to the repo's `.pre-commit-config.yaml`, creating it (with `repos:`) if missing.
+- If the repo has no CI job running pre-commit, add `lint.yml` under `.github/workflows/`.
+
+Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks wherever the repo describes its development tooling.
+
 ## 6. Backlog to issues
 
 Delegate this to a subagent if one is available. For each backlog item:
