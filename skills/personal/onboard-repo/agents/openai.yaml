@@ -1,0 +1,5 @@
+interface:
+  display_name: "Onboard Repo"
+  short_description: "Bring a repo onto the shared agent practices"
+policy:
+  allow_implicit_invocation: false

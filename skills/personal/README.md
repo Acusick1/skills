@@ -1,0 +1,5 @@
+# Personal
+
+Skills specific to this fork. Not part of upstream.
+
+- [onboard-repo](./onboard-repo/SKILL.md): bring a repo onto the shared agent practices (AGENTS.md, docs/agents config, triage labels, project board, lint over prose) and open a PR.
