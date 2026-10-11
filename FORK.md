@@ -8,7 +8,7 @@ Personal fork of [mattpocock/skills](https://github.com/mattpocock/skills).
 scripts/link-skills.sh
 ```
 
-Symlinks every skill outside `deprecated/` and `misc/` into `~/.claude/skills` and `~/.agents/skills`. Edits and pulls take effect immediately. Re-run after adding, removing or renaming a skill.
+Symlinks every skill outside `deprecated/`, `misc/` and `in-progress/` into `~/.claude/skills` and `~/.agents/skills`, and removes links to skills that are no longer installed. Edits and pulls take effect immediately. Re-run after adding, removing or renaming a skill.
 
 ## Own skills
 

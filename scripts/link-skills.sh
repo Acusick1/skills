@@ -19,16 +19,15 @@ DESTS=("$HOME/.claude/skills" "$HOME/.agents/skills")
 # is retired, and `misc/` is kept around but rarely used and not promoted (see
 # each bucket's own README): neither belongs in a daily-driver skill
 # directory, so both are skipped here, same as everywhere else non-promoted
-# skills are kept out. `in-progress/` IS still linked: it's public on purpose,
-# feedback wanted, and this local install is exactly where that feedback loop
-# runs.
+# skills are kept out. Fork: `in-progress/` is skipped too, so only finished
+# skills are installed.
 names=()
 srcs=()
 while IFS= read -r -d '' skill_md; do
   src="$(dirname "$skill_md")"
   names+=("$(basename "$src")")
   srcs+=("$src")
-done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -not -path '*/misc/*' -print0)
+done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -not -path '*/misc/*' -not -path '*/in-progress/*' -print0)
 
 for DEST in "${DESTS[@]}"; do
   # If $DEST is a symlink that resolves into this repo, we'd end up writing the
@@ -46,6 +45,24 @@ for DEST in "${DESTS[@]}"; do
   fi
 
   mkdir -p "$DEST"
+
+  # Fork: remove links into this repo that no longer match a linked skill
+  # (skill removed, renamed or moved to a skipped bucket).
+  for link in "$DEST"/*; do
+    [ -L "$link" ] || continue
+    case "$(readlink "$link")" in
+      "$REPO"/skills/*)
+        keep=0
+        for src in "${srcs[@]}"; do
+          [ "$(readlink "$link")" = "$src" ] && keep=1 && break
+        done
+        if [ "$keep" = 0 ]; then
+          rm "$link"
+          echo "unlinked $(basename "$link") ($DEST)"
+        fi
+        ;;
+    esac
+  done
 
   for i in "${!names[@]}"; do
     name="${names[$i]}"
