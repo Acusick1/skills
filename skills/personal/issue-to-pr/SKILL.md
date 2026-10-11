@@ -26,13 +26,13 @@ If any fails, stop and report which, changing nothing on the tracker. Otherwise 
 
 ## 2. Branch and draft PR
 
-- `git fetch origin`, then create a worktree at `<repo>/worktrees/issue-<n>-<slug>` on a new branch `issue-<n>-<slug>` from `origin/<default>`.
+- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch).
 - If `.pre-commit-config.yaml` exists and `git rev-parse --git-path hooks/pre-commit` names no file, run `uvx pre-commit install`.
 - Make the first commit as soon as there is real work, push, and open a **draft** PR the way `docs/agents/issue-tracker.md` says, so the board shows the issue in progress. A change that fits in one commit opens the draft with it. If draft PRs are unavailable, open a normal PR titled `[WIP] ...`.
 
 ## 3. Implement
 
-Read the code around the change before writing any. Call the Skill tool with `tdd` where the change has a testable seam. Choose the seams yourself from the acceptance criteria instead of confirming them with the user, and list them in the PR body as judgement calls. Run single test files as you go, and the repo's default test run (what CI runs) once before step 4; never tests that need live services or real credentials. If a test fails, run it on `origin/<default>`: a failure there too is pre-existing, so note it in the PR body and continue.
+Read the code around the change before writing any. Call the Skill tool with `tdd` where the change has a testable seam. Choose the seams yourself from the acceptance criteria (this overrides `tdd`'s step of confirming them with the user), and list them in the PR body as judgement calls. Run single test files as you go, and the repo's default test run (what CI runs, with the environment its workflow sets and dummy values for its secrets) once before step 4; never tests that need live services or real credentials. If a test fails, run it on `origin/<default>`: a failure there too is pre-existing, so note it in the PR body and continue.
 
 Then **exercise** the change the way a user would reach it: run the CLI command, call the endpoint, render the page. For a config or docs change, observe its effect instead (the collected tests, the rendered page). Passing tests are not evidence the feature works. Use dummy credentials only, and run nothing with outward side effects (deploys, writes to shared databases, messages).
 
@@ -43,7 +43,7 @@ Done when every acceptance criterion is met and exercised.
 Up to three review rounds:
 
 1. Push and wait for CI. Wait until `gh pr checks <pr>` lists checks (if none appear within five minutes, treat the repo as having no CI), then `gh pr checks <pr> --watch`. On failure, find the run with `gh run list --branch <branch>`, read `gh run view <id> --log-failed`, fix and push; after three failed fixes in one round, stop. If the repo has no CI, run the full suite and `pre-commit run --all-files` locally instead and say so in the PR body.
-2. Call the Skill tool with `code-review`, with `origin/<default>` as the fixed point, issue #n as the spec, and the worktree path. Tell it the reviewers are read-only: no checkout, edit or commit in the worktree. Its reviewers run as subagents that did not write the change.
+2. Call the Skill tool with `code-review`, with `origin/<default>` as the fixed point, issue #n as the spec, and the worktree path. Tell it the reviewers are read-only: no checkout, edit or commit in the worktree. Its reviewers run as subagents that did not write the change. Wait for both reports before going on: dispatch them so you block on their results, and never end your turn while one is running.
 3. Fix every hard Standards violation and every Spec finding (missing, partial, wrong or unrequested). Fix each judgement-call finding or answer it in the PR body. If the round's fixes changed no behaviour (wording, naming, docs only), or it found nothing, stop repeating.
 
 Done when CI is green and no hard Standards violation or Spec finding is open, or three rounds are spent.
@@ -58,4 +58,4 @@ Stop there. The human merges.
 
 ## Stopping
 
-When you stop early: if a draft PR exists, put the reason at the top of its body; comment the reason on the issue; remove the worktree; and keep the assignment, so the issue shows who stopped and why. End your final message with the same reason.
+When you stop early, or are made to report before finishing: if a draft PR exists, put the reason at the top of its body; comment the reason on the issue; remove the worktree; and keep the assignment, so the issue shows who stopped and why. End your final message with the same reason.
