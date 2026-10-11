@@ -26,7 +26,7 @@ If any fails, stop and report which, changing nothing on the tracker. Otherwise 
 
 ## 2. Branch and draft PR
 
-- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch).
+- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch). When resuming a branch that already exists on origin, `git worktree add <path> issue-<n>-<slug>` instead.
 - If `.pre-commit-config.yaml` exists and `git rev-parse --git-path hooks/pre-commit` names no file, run `uvx pre-commit install`.
 - Make the first commit as soon as there is real work, push, and open a **draft** PR the way `docs/agents/issue-tracker.md` says, so the board shows the issue in progress. A change that fits in one commit opens the draft with it. If draft PRs are unavailable, open a normal PR titled `[WIP] ...`.
 
@@ -44,7 +44,7 @@ Up to three review rounds:
 
 1. Push and wait for CI. Wait until `gh pr checks <pr>` lists checks (if none appear within five minutes, treat the repo as having no CI), then `gh pr checks <pr> --watch`. On failure, find the run with `gh run list --branch <branch>`, read `gh run view <id> --log-failed`, fix and push; after three failed fixes in one round, stop. If the repo has no CI, run the full suite and `pre-commit run --all-files` locally instead and say so in the PR body.
 2. Call the Skill tool with `code-review`, with `origin/<default>` as the fixed point, issue #n as the spec, and the worktree path. Tell it the reviewers are read-only: no checkout, edit or commit in the worktree. Its reviewers run as subagents that did not write the change. Wait for both reports before going on: dispatch them so you block on their results (in Claude Code, `run_in_background: false`), and never end your turn while one is running.
-3. Fix every hard Standards violation and every Spec finding (missing, partial, wrong or unrequested). Fix each judgement-call finding or answer it in the PR body. A finding that needs a maintainer decision (for example a deliberate deviation from the issue) is not fixed by you: list it as a question, and it keeps the PR a draft. Run another round only if this round's fixes changed behaviour.
+3. Fix every hard Standards violation and every Spec finding (missing, partial, wrong or unrequested). Fix each judgement-call finding or answer it in the PR body. A finding that needs a maintainer decision (for example a deliberate deviation from the issue) is not fixed by you: list it as a question, and it keeps the PR a draft. A finding that a decision already recorded on the issue or PR settles is answered in the PR body by citing that decision. Run another round only if this round's fixes changed behaviour.
 
 Done when CI is green and no hard Standards violation or Spec finding is open, or three rounds are spent.
 
