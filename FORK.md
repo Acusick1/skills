@@ -12,7 +12,7 @@ Symlinks every skill outside `deprecated/`, `misc/` and `in-progress/` into `~/.
 
 ## Own skills
 
-Own skills live in `skills/personal/`. Upstream files are edited only when a change cannot live in a separate skill, so upstream merges stay clean.
+Own skills live in `skills/personal/`, and reusable prompt text in `skills/prompts/` (see its README for adding one). Upstream files are edited only when a change cannot live in a separate skill, so upstream merges stay clean.
 
 ## Taking upstream changes
 

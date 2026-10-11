@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ask"
+  short_description: "Answer without changing anything"
+policy:
+  allow_implicit_invocation: false
