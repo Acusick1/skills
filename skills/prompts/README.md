@@ -22,7 +22,7 @@ Each prompt is a user-invoked skill, so it works in every harness that reads Age
    <the prompt, written to apply to the request that accompanies it>
    ```
 
-   Refer to "the request" rather than an `$ARGUMENTS` placeholder: Claude Code appends the text typed after the name, and Codex passes the whole message, so both read the same body.
+   Refer to "the request" rather than an argument placeholder: agents pass the text typed after the name in different ways, and this wording reads the same in all of them.
 2. Add `agents/openai.yaml` with `policy: allow_implicit_invocation: false`, so Codex only runs it when named.
 3. Add it to the list above, then run `scripts/link-skills.sh`.
 
