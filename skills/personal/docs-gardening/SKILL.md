@@ -50,4 +50,5 @@ Work in a worktree on a new branch.
 - Backlog content removed from pages goes into the PR body as a list. Create issues for it only after the user approves.
 - Re-run the mechanical checks. Then dispatch a subagent that did not write the changes to run this skill in Review mode against the branch. Fix what it finds in one follow-up commit whose body lists any further removals; do not rewrite the page commits.
 - If the gardened pages now contradict an out-of-scope file (for example `AGENTS.md`), list each contradiction in the PR body and offer a writing-for-agents pass.
-- Open the PR. Its body summarises each page's changes and lists the backlog items, the ADR candidates, recommended splits, and anything you were unsure of. Never merge.
+- Before opening the PR, ask the user about anything you could not settle from the code, the docs or the reviewing subagent, and apply the answers.
+- Open the PR. Its body summarises each page's changes and lists the backlog items, the ADR candidates and recommended splits for approval. Never merge.
