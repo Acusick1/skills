@@ -10,8 +10,9 @@ Work the tree in **rounds**. The **frontier** is every decision whose prerequisi
 Ask with your harness's structured question tool when it has one (in Claude Code, `AskUserQuestion`):
 
 - One question per frontier decision, with a short header and the context it needs in the question text.
-- Two to four options per question, each with a one-line description of its consequence. Put your recommendation first and mark it "(Recommended)". For an open-ended decision, offer the likeliest answers as options; the tool lets the user write their own.
-- If the frontier holds more questions than one call allows, ask it in consecutive calls before moving on.
+- Two to four options per question, each with a one-line description of its consequence. Put your recommendation first and mark it "(Recommended)". When an option needs more than a line to judge (a schema, an outline), show it in the option's preview if the tool has one, or in a message before the call.
+- For an open-ended decision, offer the likeliest answers as options when the tool accepts a written answer instead; otherwise ask that decision in text.
+- If the frontier holds more questions than one call allows, ask the rest in consecutive calls, dropping any that an earlier answer made moot, before recomputing the frontier.
 
 Without such a tool, format a round in text like so:
 
