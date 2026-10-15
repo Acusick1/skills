@@ -1,0 +1,5 @@
+interface:
+  display_name: "Memory Gardening"
+  short_description: "Prune and restructure Claude Code's persistent memory"
+policy:
+  allow_implicit_invocation: false
