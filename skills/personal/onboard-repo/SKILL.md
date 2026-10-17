@@ -42,7 +42,7 @@ Locate the `setup-matt-pocock-skills` skill folder (the directory holding its `S
 
 - `issue-tracker-github.md` saved as `issue-tracker.md`:
   - Create issues with `gh issue create --project "Personal" ...`, and say never to omit `--project`.
-  - Add: open a draft PR whose body contains `Closes #<number>` as soon as the branch has its first commit. Linking moves the issue to In Progress on the board; merging moves it to Done.
+  - After the **Create an issue** bullet, insert the "Find unclaimed work", "Start work on an issue" and "Stop work before finishing" bullets from the `agent-config` repo's `docs/agents/issue-tracker.md`, verbatim.
   - In "Pull requests as a triage surface", keep only the flag line, as a statement (`**PRs as a request surface: no.** External PRs are not triaged as feature requests.`), and delete the setup parenthetical and the instructions for the `yes` case.
   - Keep the wayfinding section; the `wayfinder` skill reads it.
 - `triage-labels.md`: delete the closing line telling the reader to edit the column.
@@ -86,10 +86,11 @@ A repo with no linters still gets this pass; record its outcome in the PR body e
 Copy the shared docs checks from the `agent-config` repo's `docs-checks/` directory:
 
 - `vale/Temporal/` to `.vale/styles/Temporal/`, and `vale.ini` to `.vale.ini`. In the `agent-config` repo itself, copy no styles: point `.vale.ini`'s `StylesPath` at `docs-checks/vale`.
-- Append the hooks in `pre-commit-hooks.yaml` to the repo's `.pre-commit-config.yaml`, creating it (with `repos:`) if missing.
+- Append the hooks in `pre-commit-hooks.yaml` to the repo's `.pre-commit-config.yaml`, creating it (with `repos:`) if missing. Add `post-checkout` to the top-level `default_install_hook_types`, creating it as `[pre-commit, post-checkout]` if missing. Set `default_stages` to the hook types the repo installed before this change (`[pre-commit]` if none), so its other hooks do not also run on checkout.
+- Copy `hooks/claim-issue.sh` to `.githooks/claim-issue.sh` with `cp -p`, and confirm `git ls-files -s .githooks/claim-issue.sh` shows mode `100755` once staged. In the `agent-config` repo itself, the hook entry points at `docs-checks/hooks/claim-issue.sh` instead. If the repo sets `core.hooksPath`, `pre-commit install` refuses to run; raise it in step 1.
 - If the repo has no CI job running pre-commit, add `lint.yml` under `.github/workflows/`.
 
-Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks, their scope, and `pre-commit install` wherever the repo describes its development tooling; if it describes none, add a "Development" section to `README.md`. Install the hook locally with `uvx pre-commit install`.
+Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks, their scope, and `pre-commit install` wherever the repo describes its development tooling; if it describes none, add a "Development" section to `README.md`. Install the hooks locally with `uvx pre-commit install`, which installs both hook types.
 
 ## 6. Backlog to issues
 
