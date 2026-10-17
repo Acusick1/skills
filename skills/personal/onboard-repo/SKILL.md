@@ -20,7 +20,7 @@ Read before changing anything:
 - `CLAUDE.md`, `AGENTS.md`, `.claude/CLAUDE.md`, and every reference to them (`git grep -n CLAUDE.md`).
 - Where documentation is indexed: `README.md`, `CLAUDE.md`, `docs/`. Note every index, full or partial.
 - Ad-hoc backlogs: `TODO.md` (check `git check-ignore`; it is often a local, untracked file), plan files, "open questions" or "future work" sections in docs.
-- Lint and hook config: `pyproject.toml` / `ruff.toml`, `.pre-commit-config.yaml`, and whether the hook is installed (`.git/hooks/pre-commit`).
+- Lint and hook config: `pyproject.toml` / `ruff.toml`, `.pre-commit-config.yaml`, which hooks are installed (`pre-commit` and `post-checkout` under `$(git rev-parse --git-common-dir)/hooks`), and `git config core.hooksPath`.
 - Open issues (`gh issue list --state open --limit 200`) and which are already on the board (`gh project item-list <n> --owner <owner> --limit 200`).
 - Existing labels (`gh label list`).
 
@@ -88,11 +88,11 @@ A repo with no linters still gets this pass; record its outcome in the PR body e
 Copy the shared docs checks from the `agent-config` repo's `docs-checks/` directory:
 
 - `vale/Temporal/` to `.vale/styles/Temporal/`, and `vale.ini` to `.vale.ini`. In the `agent-config` repo itself, copy no styles: point `.vale.ini`'s `StylesPath` at `docs-checks/vale`.
-- Append the hooks in `pre-commit-hooks.yaml` to the repo's `.pre-commit-config.yaml`, creating it (with `repos:`) if missing. Add `post-checkout` to the top-level `default_install_hook_types`, creating it as `[pre-commit, post-checkout]` if missing. Set `default_stages` to the hook types the repo installed before this change (`[pre-commit]` if none), so its other hooks do not also run on checkout.
-- Copy `hooks/claim-issue.sh` to `.githooks/claim-issue.sh` with `cp -p`, and confirm `git ls-files -s .githooks/claim-issue.sh` shows mode `100755` once staged. In the `agent-config` repo itself, the hook entry points at `docs-checks/hooks/claim-issue.sh` instead. If the repo sets `core.hooksPath`, `pre-commit install` refuses to run; raise it in step 1.
+- Append the hooks in `pre-commit-hooks.yaml` to the repo's `.pre-commit-config.yaml`, creating it (with `repos:`) if missing.
+- Copy `hooks/claim-issue.sh` to `.githooks/claim-issue.sh` with `cp -p`, and confirm `git ls-files -s .githooks/claim-issue.sh` shows mode `100755` once staged. It runs as a plain `post-checkout` git hook, outside pre-commit. In the `agent-config` repo itself, copy nothing and link `../../docs-checks/hooks/claim-issue.sh` instead. If the repo sets `core.hooksPath`, or the clone already has a `post-checkout` hook (git-lfs installs one), raise it in step 1 rather than overwriting it.
 - If the repo has no CI job running pre-commit, add `lint.yml` under `.github/workflows/`.
 
-Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks, their scope, and `pre-commit install` wherever the repo describes its development tooling; if it describes none, add a "Development" section to `README.md`. Install the hooks locally with `uvx pre-commit install`, which installs both hook types.
+Run `pre-commit run --all-files`. Fix every Vale error and lychee failure in human-facing docs (errors are near-certain narration; rewrite the sentence to state the current state). Leave Vale warnings for a docs-gardening pass. If a file outside the hook's scope trips a check, narrow the hook's `files` pattern rather than editing that file. Document the hooks, their scope, `pre-commit install` and the claim hook's install command wherever the repo describes its development tooling; if it describes none, add a "Development" section to `README.md`. Install the hooks locally with `uvx pre-commit install` and `ln -s ../../.githooks/claim-issue.sh "$(git rev-parse --git-common-dir)/hooks/post-checkout"`.
 
 ## 6. Backlog to issues
 
@@ -135,8 +135,8 @@ Brings an onboarded repo's copies up to date with the `agent-config` repo, one P
    - The `docs/agents/issue-tracker.md` bullets taken from `agent-config`, and the `AGENTS.md` agent skills block. The rest of `docs/agents/` comes from the `setup-matt-pocock-skills` templates and is not re-synced.
    - The five labels: compare with `gh label list` and create missing ones with `gh label create --force`.
    - The Vale styles and config, the claim hook script, and the lint workflow if the repo uses it.
-   - The hook entries against `pre-commit-hooks.yaml`, and `default_install_hook_types` covering every stage those hooks use. Leave `default_stages` as the repo set it.
+   - The hook entries against `pre-commit-hooks.yaml`.
 
    Keep deviations the repo made on purpose, such as a narrowed `files` pattern or its own CI job. `git log -p -- <file>` shows whether a difference was a deliberate change; ask when you still cannot tell.
-4. Run `uvx pre-commit install` so new hook types are installed, then `pre-commit run --all-files`, fixing failures as in [Docs checks](#docs-checks).
+4. Run `uvx pre-commit install`, and install the claim hook as in [Docs checks](#docs-checks) if the clone has no `post-checkout` hook. Then run `pre-commit run --all-files`, fixing failures as in [Docs checks](#docs-checks).
 5. Review and open the PR as in [8. Review, then PR](#8-review-then-pr). The body names the `agent-config` commit synced to, each file changed, each deviation kept, and any labels created.
