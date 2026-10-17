@@ -1,12 +1,14 @@
 ---
 name: onboard-repo
-description: Bring a repo onto the shared agent practices (AGENTS.md, docs/agents config, triage labels, project board, lint over prose) and open a PR.
+description: Bring a repo onto the shared agent practices (AGENTS.md, docs/agents config, triage labels, project board, lint over prose) and open a PR, or sync an already-onboarded repo with the current agent-config sources.
 disable-model-invocation: true
 ---
 
 # Onboard a repo
 
 Brings one repo onto the shared practices and opens a single PR. Everything that lives on GitHub rather than in the diff (labels, board, issues) is done directly and listed in the PR body.
+
+A repo carrying the `agent-onboarded` topic is already onboarded: follow [Sync an onboarded repo](#sync-an-onboarded-repo) instead of steps 1 to 9.
 
 **Board:** the GitHub Project named `Personal`, owned by the repo owner. If the user names a different board, use that everywhere this skill says `Personal`.
 
@@ -105,6 +107,7 @@ Then remove the migrated source: delete tracked files in the PR; for an untracke
 
 - `gh project link <n> --owner <owner> --repo <repo>`.
 - Add every open issue not already on the board with `gh project item-add`.
+- Tag the repo as onboarded: `gh repo edit <owner>/<repo> --add-topic agent-onboarded`. Skip this for `agent-config` itself.
 
 ## 8. Review, then PR
 
@@ -121,3 +124,19 @@ Do not decide these silently. Raise them in step 1 and in the PR body:
 - Any lint rule enabled, and any left as an issue instead.
 - Backlog items you judged to overlap an existing issue.
 - Deleting any untracked file.
+
+## Sync an onboarded repo
+
+Brings an onboarded repo's copies up to date with the `agent-config` repo, one PR per repo. List the onboarded repos with `gh repo list <owner> --topic agent-onboarded --json nameWithOwner`; sync the one the user names, or each in turn. Never sync `agent-config` itself; it holds the sources.
+
+1. In an `agent-config` checkout, `git fetch origin` and read each source with `git show origin/main:<path>`, never the working tree, which may hold unmerged changes. Note `git rev-parse --short origin/main` for the PR body.
+2. Work in `<repo>/worktrees/sync-agent-config-<hash>`, on a new branch of the same name from the default branch's remote head, where `<hash>` is the commit from step 1.
+3. Redo every copy that [4. Agent skill configuration](#4-agent-skill-configuration) and [Docs checks](#docs-checks) make, as a diff against the repo's current state, and apply what changed at the source:
+   - The `docs/agents/issue-tracker.md` bullets taken from `agent-config`, and the `AGENTS.md` agent skills block. The rest of `docs/agents/` comes from the `setup-matt-pocock-skills` templates and is not re-synced.
+   - The five labels: compare with `gh label list` and create missing ones with `gh label create --force`.
+   - The Vale styles and config, the claim hook script, and the lint workflow if the repo uses it.
+   - The hook entries against `pre-commit-hooks.yaml`, and `default_install_hook_types` covering every stage those hooks use. Leave `default_stages` as the repo set it.
+
+   Keep deviations the repo made on purpose, such as a narrowed `files` pattern or its own CI job. `git log -p -- <file>` shows whether a difference was a deliberate change; ask when you still cannot tell.
+4. Run `uvx pre-commit install` so new hook types are installed, then `pre-commit run --all-files`, fixing failures as in [Docs checks](#docs-checks).
+5. Review and open the PR as in [8. Review, then PR](#8-review-then-pr). The body names the `agent-config` commit synced to, each file changed, each deviation kept, and any labels created.
