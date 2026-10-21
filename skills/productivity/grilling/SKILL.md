@@ -5,9 +5,16 @@ description: Grill the user relentlessly about a plan, decision, or idea. Use wh
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
+Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round, giving your recommended answer for each. Then wait for the user's answers before the next round.
 
-Format a round like so:
+Ask with your structured question tool when you have one:
+
+- One question per frontier decision, with a short header and the context it needs in the question text.
+- Two to four options per question, each with a one-line description of its consequence. Put your recommendation first and mark it "(Recommended)". When an option needs more than a line to judge (a schema, an outline), show it in the option's preview if the tool has one, or in a message before the call.
+- For an open-ended decision, offer the likeliest answers as options when the tool accepts a written answer instead; otherwise ask that decision in text.
+- If the frontier holds more questions than one call allows, ask the rest in consecutive calls, dropping any that an earlier answer made moot, before recomputing the frontier.
+
+Without such a tool, format a round in text like so:
 
 ```
 ❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
@@ -21,7 +28,7 @@ Format a round like so:
 ➡️ <your recommended answer>
 ```
 
-Word each question so "yes" accepts your recommended answer.
+Word each text question so "yes" accepts your recommended answer.
 
 Each round the user answers reshapes the tree: settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
 
