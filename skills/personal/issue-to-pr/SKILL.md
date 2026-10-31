@@ -1,6 +1,6 @@
 ---
 name: issue-to-pr
-description: Take one named ready-for-agent issue to a reviewed, CI-green pull request, asking the user only for decisions no agent can settle. Use when the user or a calling skill gives a specific issue number to implement through to a PR, or to resume one parked earlier.
+description: Take one named ready-for-agent issue to a reviewed, CI-green pull request. Use when the user or a calling skill gives a specific issue number to implement through to a PR, or to resume one parked earlier.
 ---
 
 # Issue to PR
@@ -14,7 +14,7 @@ A decision is the user's only when nothing an agent can reach settles it: not th
 How a user decision is handled depends on the mode, given as an argument after the issue number:
 
 - **Default:** bring it back to the user. Ask, with the options and your recommendation, wait for the answer, record it on the PR, and continue. If you are a subagent, return the question to your caller and stop until you are resumed with the answer.
-- **`autonomous`** (only when the user or a calling skill asks for it): never wait. **Park** the issue: comment the question on the issue with the options and your recommendation, swap its `ready-for-agent` label for `needs-info` (or the tracker's mappings), keep the PR a draft with a link to that comment, keep the assignment, and stop as in "Stopping". The human answers on the issue and swaps the label back; re-running the skill on the issue resumes the work (see step 1).
+- **`autonomous`** (only when the user or a calling skill asks for it): never wait. **Park** the issue: stop as in "Stopping", with the question, its options and your recommendation as the reason. The human answers on the issue and swaps the label back; re-running the skill on the issue resumes the work (see step 1).
 
 The issue tracker, triage labels and PR conventions are in `docs/agents/` on the default branch (`git show origin/<default>:docs/agents/issue-tracker.md`; the local checkout may be on another branch). If they are missing, stop and say the repo needs onboarding.
 
@@ -27,14 +27,16 @@ For a plan of several dependent tickets on one integration branch, use `implemen
 - The issue is open and labelled `ready-for-agent` (or the tracker's mapping for it).
 - It is unassigned, or assigned to you.
 - No blocker is open: every `blockedBy` node and every "Blocked by #m" in the body is closed.
-- No linked pull request is open (`closedByPullRequestsReferences`), except one whose head branch is `issue-<n>-*`: that is this skill's own stopped work, so **resume** it. Read the issue comments posted since it stopped; an answer to a parked question settles that decision.
+- No linked pull request is open, except one on this skill's own branch `issue-<n>-*` (a resume). Check each `closedByPullRequestsReferences` entry with `gh pr view <url> --json state,headRefName`.
 - It states acceptance criteria or a testable outcome.
 
 If any fails, stop and report which, changing nothing on the tracker. Otherwise claim it with `gh issue edit <n> --add-assignee @me`, then re-read the assignees; if someone else is also assigned, stop.
 
+**Resume** when `git ls-remote --heads origin 'issue-<n>-*'` names a branch: it is this skill's own stopped work. Keep that branch name in step 2, and read the issue comments posted since the last stop comment; an answer there settles the decision it was parked on.
+
 ## 2. Branch and draft PR
 
-- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch). When resuming a branch that already exists on origin, `git worktree add <path> issue-<n>-<slug>` instead.
+- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch). When resuming, run `git worktree add -B <branch> <repo>/worktrees/<branch> origin/<branch>` instead (this resets any stale local copy) and skip the push; skip opening a draft PR if one is open.
 - If `.pre-commit-config.yaml` exists and `git rev-parse --git-path hooks/pre-commit` names no file, run `uvx pre-commit install`.
 - Make the first commit as soon as there is real work, push, and open a **draft** PR the way `docs/agents/issue-tracker.md` says, so the board shows the issue in progress. A change that fits in one commit opens the draft with it. If draft PRs are unavailable, open a normal PR titled `[WIP] ...`.
 
@@ -60,10 +62,16 @@ Done when CI is green and no hard Standards violation or Spec finding is open, o
 
 Rewrite the PR body (call the Skill tool with `pr` if available), keeping the issue link line from step 2: what changed and why, how you exercised it, the seams you chose, review findings you answered rather than fixed, and every other judgement call you made without asking. Once everything is pushed, remove the worktree (`--force` is fine then; it only discards ignored files such as `.venv`).
 
-Mark the PR ready (`gh pr ready <pr>`) only if CI is green on the last pushed commit, no hard Standards violation, Spec finding or user decision is open, and the review ran in subagents. Otherwise leave it as a draft, comment what is open on the issue, and link that comment at the top of the PR body.
+Mark the PR ready (`gh pr ready <pr>`) only if CI is green on the last pushed commit, no hard Standards violation, Spec finding or user decision is open, and the review ran in subagents. Otherwise leave it as a draft and stop as in "Stopping", with what is open as the reason.
 
 Stop there. The human merges.
 
 ## Stopping
 
-When you stop early, or are made to report before finishing: comment the reason on the issue; if a draft PR exists, link that comment at the top of its body; remove the worktree; and keep the assignment, so the issue shows who stopped and why. End your final message with the same reason.
+When you stop early, or are made to report before finishing:
+
+- Comment the reason on the issue, and swap its `ready-for-agent` label for `needs-info` (or the tracker's mappings), so the issue leaves the agent queue until a human clears it.
+- If a draft PR exists, link that comment at the top of its body.
+- Remove the worktree, and keep the assignment, so the issue shows who stopped and why.
+
+End your final message with the same reason.
