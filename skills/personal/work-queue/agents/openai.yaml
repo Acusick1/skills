@@ -1,0 +1,5 @@
+interface:
+  display_name: "Work Queue"
+  short_description: "Drain ready-for-agent issues through issue-to-pr"
+policy:
+  allow_implicit_invocation: false
