@@ -27,16 +27,16 @@ For a plan of several dependent tickets on one integration branch, use `implemen
 - The issue is open and labelled `ready-for-agent` (or the tracker's mapping for it).
 - It is unassigned, or assigned to you.
 - No blocker is open: every `blockedBy` node and every "Blocked by #m" in the body is closed.
-- No linked pull request is open, except one on this skill's own branch `issue-<n>-*` (a resume). Check each `closedByPullRequestsReferences` entry with `gh pr view <url> --json state,headRefName`.
+- No linked pull request is open, except a draft on this skill's own branch `issue-<n>-*` (a resume). Check each `closedByPullRequestsReferences` entry with `gh pr view <url> --json state,isDraft,headRefName`.
 - It states acceptance criteria or a testable outcome.
 
-If any fails, stop and report which, changing nothing on the tracker. Otherwise claim it with `gh issue edit <n> --add-assignee @me`, then re-read the assignees; if someone else is also assigned, stop.
+If any fails, stop and report which, changing nothing on the tracker. Otherwise claim it with `gh issue edit <n> --add-assignee @me`, then re-read the assignees; if someone else is also assigned, unassign yourself and stop, changing nothing else on the tracker.
 
-**Resume** when `git ls-remote --heads origin 'issue-<n>-*'` names a branch: it is this skill's own stopped work. Keep that branch name in step 2, and read the issue comments posted since the last stop comment; an answer there settles the decision it was parked on.
+**Resume** when `git ls-remote --heads origin 'issue-<n>-*'` names a branch: it is this skill's own stopped work. Keep that branch name in step 2, and read the issue comments: an answer to the question it was parked on settles that decision.
 
 ## 2. Branch and draft PR
 
-- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch). When resuming, run `git worktree add -B <branch> <repo>/worktrees/<branch> origin/<branch>` instead (this resets any stale local copy) and skip the push; skip opening a draft PR if one is open.
+- `git fetch origin`, then `git worktree add --no-track -b issue-<n>-<slug> <repo>/worktrees/issue-<n>-<slug> origin/<default>`, and push with `git push -u origin issue-<n>-<slug>` (a tracking branch would push to the default branch). When resuming, after `git fetch origin` run `git worktree add -B <branch> <repo>/worktrees/<branch> origin/<branch>` instead (this resets any stale local copy) and skip the push; skip opening a draft PR if one is open.
 - If `.pre-commit-config.yaml` exists and `git rev-parse --git-path hooks/pre-commit` names no file, run `uvx pre-commit install`.
 - Make the first commit as soon as there is real work, push, and open a **draft** PR the way `docs/agents/issue-tracker.md` says, so the board shows the issue in progress. A change that fits in one commit opens the draft with it. If draft PRs are unavailable, open a normal PR titled `[WIP] ...`.
 
