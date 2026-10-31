@@ -31,9 +31,8 @@ Dispatch a subagent whose instruction is: "Call the Skill tool with `issue-to-pr
 Wait for it to finish. Then read the outcome from the tracker alone, ignoring the subagent's message:
 
 - **ready**: a PR with head branch `issue-<n>-*` is open and not a draft.
-- **draft**: that PR is a draft and the issue lacks `needs-info`. The latest issue comment holds the reason it stopped.
-- **parked**: the issue carries `needs-info`. The latest issue comment holds the question.
-- **refused**: no such PR exists and the issue is unchanged.
+- **parked**: the issue carries `needs-info`. The latest issue comment holds the question or the reason it stopped.
+- **refused**: the issue still carries `ready-for-agent` and has no ready PR.
 
 Done when the issue is classified into one outcome.
 
@@ -59,8 +58,7 @@ Stop when no candidates remain or a post-merge run fails. Report the tried issue
 
 - merged (PR link)
 - ready, unmerged (PR link)
-- parked (link to the question comment)
-- stopped (draft PR link and the reason comment)
+- parked (link to the question or reason comment)
 - refused by the gate
 
 Then state why the loop stopped: queue empty, or the failing post-merge run's link.
