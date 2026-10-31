@@ -1,7 +1,6 @@
 ---
 name: issue-to-pr
-description: Take one ready-for-agent issue to a reviewed, CI-green pull request, asking the user only for decisions no agent can settle.
-disable-model-invocation: true
+description: Take one named ready-for-agent issue to a reviewed, CI-green pull request, asking the user only for decisions no agent can settle. Use when the user or a calling skill gives a specific issue number to implement through to a PR, or to resume one parked earlier.
 ---
 
 # Issue to PR
@@ -15,7 +14,7 @@ A decision is the user's only when nothing an agent can reach settles it: not th
 How a user decision is handled depends on the mode, given as an argument after the issue number:
 
 - **Default:** bring it back to the user. Ask, with the options and your recommendation, wait for the answer, record it on the PR, and continue. If you are a subagent, return the question to your caller and stop until you are resumed with the answer.
-- **`autonomous`** (only when the user asks for it, for example from an unattended runner): never wait. Put the question in the PR body, keep the PR a draft, and comment the question on the issue.
+- **`autonomous`** (only when the user or a calling skill asks for it): never wait. **Park** the issue: comment the question on the issue with the options and your recommendation, swap its `ready-for-agent` label for `needs-info` (or the tracker's mappings), keep the PR a draft with a link to that comment, keep the assignment, and stop as in "Stopping". The human answers on the issue and swaps the label back; re-running the skill on the issue resumes the work (see step 1).
 
 The issue tracker, triage labels and PR conventions are in `docs/agents/` on the default branch (`git show origin/<default>:docs/agents/issue-tracker.md`; the local checkout may be on another branch). If they are missing, stop and say the repo needs onboarding.
 
@@ -28,7 +27,7 @@ For a plan of several dependent tickets on one integration branch, use `implemen
 - The issue is open and labelled `ready-for-agent` (or the tracker's mapping for it).
 - It is unassigned, or assigned to you.
 - No blocker is open: every `blockedBy` node and every "Blocked by #m" in the body is closed.
-- No linked pull request is open (`closedByPullRequestsReferences`).
+- No linked pull request is open (`closedByPullRequestsReferences`), except one whose head branch is `issue-<n>-*`: that is this skill's own stopped work, so **resume** it. Read the issue comments posted since it stopped; an answer to a parked question settles that decision.
 - It states acceptance criteria or a testable outcome.
 
 If any fails, stop and report which, changing nothing on the tracker. Otherwise claim it with `gh issue edit <n> --add-assignee @me`, then re-read the assignees; if someone else is also assigned, stop.
@@ -59,12 +58,12 @@ Done when CI is green and no hard Standards violation or Spec finding is open, o
 
 ## 5. Hand over
 
-Rewrite the PR body (call the Skill tool with `pr` if available), keeping the issue link line from step 2: what changed and why, how you exercised it, the seams you chose, review findings left open, and every other judgement call you made without asking. Once everything is pushed, remove the worktree (`--force` is fine then; it only discards ignored files such as `.venv`).
+Rewrite the PR body (call the Skill tool with `pr` if available), keeping the issue link line from step 2: what changed and why, how you exercised it, the seams you chose, review findings you answered rather than fixed, and every other judgement call you made without asking. Once everything is pushed, remove the worktree (`--force` is fine then; it only discards ignored files such as `.venv`).
 
-Mark the PR ready (`gh pr ready <pr>`) only if CI is green on the last pushed commit, no hard Standards violation, Spec finding or user decision is open, and the review ran in subagents. Otherwise leave it as a draft, list what is open, and comment the same on the issue.
+Mark the PR ready (`gh pr ready <pr>`) only if CI is green on the last pushed commit, no hard Standards violation, Spec finding or user decision is open, and the review ran in subagents. Otherwise leave it as a draft, comment what is open on the issue, and link that comment at the top of the PR body.
 
 Stop there. The human merges.
 
 ## Stopping
 
-When you stop early, or are made to report before finishing: if a draft PR exists, put the reason at the top of its body; comment the reason on the issue; remove the worktree; and keep the assignment, so the issue shows who stopped and why. End your final message with the same reason.
+When you stop early, or are made to report before finishing: comment the reason on the issue; if a draft PR exists, link that comment at the top of its body; remove the worktree; and keep the assignment, so the issue shows who stopped and why. End your final message with the same reason.
